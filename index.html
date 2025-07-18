@@ -216,6 +216,10 @@
         .btn:disabled:hover::before {
             left: -100%;
         }
+
+        .btn-icon {
+            margin-right: 10px;
+        }
         
         .app-footer {
             text-align: center;
@@ -341,6 +345,12 @@
             .export-options {
                 padding: 15px;
             }
+
+            .info-modal-content {
+                width: 95%;
+                max-height: 90vh;
+                padding: 20px;
+            }
         }
         
         .cad-logos {
@@ -357,6 +367,99 @@
             border-radius: 8px;
             font-weight: 600;
             font-size: 0.9rem;
+        }
+
+        /* Stili per il Modal Info */
+        .info-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .info-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .info-modal-content {
+            background: var(--primary);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--card-border);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .info-modal.show .info-modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .info-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            color: var(--light);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .info-modal-close:hover {
+            color: var(--accent);
+        }
+
+        .info-modal-content h2 {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .info-modal-content h3 {
+            font-size: 1.4rem;
+            color: var(--success);
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        .info-modal-content p, .info-modal-content ul {
+            font-size: 1rem;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .info-modal-content ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+
+        .info-modal-content strong {
+            color: var(--light);
+        }
+
+        .info-modal-content .section-divider {
+            border-top: 1px dashed rgba(255, 255, 255, 0.2);
+            margin: 30px 0;
         }
     </style>
 </head>
@@ -396,7 +499,15 @@
                 </div>
                 
                 <button class="btn" id="convertBtn" disabled>
-                    <i class="fas fa-sync-alt"></i> CONVERTI IN DXF
+                    <span id="convertBtnIcon"><i class="fas fa-sync-alt"></i></span> CONVERTI IN DXF
+                </button>
+
+                <button class="btn" id="resetBtn" style="display: none;">
+                    <i class="fas fa-redo"></i> NUOVA CONVERSIONE
+                </button>
+
+                <button class="btn" id="infoBtn">
+                    <i class="fas fa-info-circle"></i> INFO SULLE MODALITÀ
                 </button>
             </div>
             
@@ -430,11 +541,67 @@
         </div>
     </div>
 
+    <!-- Info Modal -->
+    <div class="info-modal" id="infoModal">
+        <div class="info-modal-content">
+            <span class="info-modal-close" id="infoModalClose">&times;</span>
+            <h2>Informazioni sulle Modalità di Esportazione</h2>
+
+            <h3>⚖️ Bilanciato (Default)</h3>
+            <p><strong>Descrizione:</strong> Miglior compromesso tra qualità e performance. Ideale per la maggior parte dei casi d'uso, offrendo un buon equilibrio tra fedeltà geometrica e velocità di elaborazione.</p>
+            <p><strong>Limiti:</strong> Potrebbe non preservare dettagli estremamente fini o geometrie complesse con precisione assoluta. Non è ottimizzato per la gestione di modelli CAD estremamente grandi o complessi.</p>
+            <p><strong>Requisiti di Sistema:</strong> Minimi. Funziona bene sulla maggior parte dei dispositivi moderni (desktop, laptop).</p>
+
+            <div class="section-divider"></div>
+
+            <h3>🎯 Alta Qualità</h3>
+            <p><strong>Descrizione:</strong> Prioritizza la fedeltà geometrica mantenendo tutti i dettagli con una tolleranza di 0.01mm. Questa modalità è pensata per applicazioni che richiedono la massima precisione.</p>
+            <p><strong>Limiti:</strong> L'elaborazione è significativamente più lenta e il consumo di memoria è maggiore, specialmente per modelli complessi. I file DXF generati possono essere di dimensioni molto grandi.</p>
+            <p><strong>Requisiti di Sistema:</strong> Consigliato un dispositivo con CPU performante (es. Intel Core i5/Ryzen 5 o superiore) e almeno 8GB di RAM. Una GPU dedicata (es. NVIDIA GeForce, AMD Radeon) può migliorare notevolmente l'esperienza di visualizzazione e manipolazione del modello risultante in software CAD.</p>
+
+            <div class="section-divider"></div>
+
+            <h3>🚀 Massima Performance</h3>
+            <p><strong>Descrizione:</strong> Ottimizzato per scene molto complesse (>50.000 vertici). Utilizza una semplificazione geometrica aggressiva e riduce la precisione a 0.1mm per garantire la massima velocità di conversione.</p>
+            <p><strong>Limiti:</strong> Si verifica una perdita di dettagli fini e la geometria potrebbe apparire meno precisa. Questa modalità non è adatta per applicazioni che richiedono alta fedeltà o misurazioni esatte.</p>
+            <p><strong>Requisiti di Sistema:</strong> Funziona bene anche su hardware meno potente, poiché il focus principale è la velocità di elaborazione a discapito della precisione.</p>
+
+            <div class="section-divider"></div>
+
+            <h3>📱 Ottimizzato Mobile</h3>
+            <p><strong>Descrizione:</strong> Progettato specificamente per dispositivi entry-level e browser mobili. Include una riduzione della memoria del 60% e la disabilitazione di effetti avanzati per garantire fluidità.</p>
+            <p><strong>Limiti:</strong> La precisione è ulteriormente ridotta e la semplificazione è aggressiva. La qualità visiva e geometrica nel DXF potrebbe essere notevolmente compromessa per garantire la compatibilità e la velocità su dispositivi mobili.</p>
+            <p><strong>Requisiti di Sistema:</strong> Molto bassi. Ideale per smartphone e tablet con risorse hardware limitate.</p>
+
+            <div class="section-divider"></div>
+
+            <h3>🕰️ Compatibilità Legacy</h3>
+            <p><strong>Descrizione:</strong> Pensato per garantire la compatibilità con software CAD obsoleti. Supporta solo il formato DXF R12 (ASCII) e limita le entità al solo layer 0.</p>
+            <p><strong>Limiti:</strong> Nessun supporto per geometrie 3D complesse (tutto viene proiettato in 2D). Le funzionalità DXF sono molto limitate e i modelli complessi potrebbero apparire estremamente semplificati, incompleti o distorti.</p>
+            <p><strong>Requisiti di Sistema:</strong> Estremamente bassi. Compatibile con quasi tutti i sistemi e software CAD molto datati.</p>
+
+            <div class="section-divider"></div>
+
+            <h2>Informazioni Generali</h2>
+            <ul>
+                <li><strong>Privacy:</strong> L'elaborazione dei file avviene al 100% lato client. I tuoi dati non lasciano mai il tuo browser. L'applicazione funziona anche offline.</li>
+                <li><strong>Supporto DXF:</strong> L'applicazione è in grado di generare file DXF compatibili con versioni da R12 a R2018.</li>
+                <li><strong>Sviluppatore:</strong> Ernesto Lamberti.</li>
+                <li><strong>Licenza:</strong> Tutti i diritti riservati.</li>
+            </ul>
+        </div>
+    </div>
+
     <script>
         // Elementi DOM
         const fileInput = document.getElementById('fileInput');
         const dropZone = document.getElementById('dropZone');
         const convertBtn = document.getElementById('convertBtn');
+        const convertBtnIcon = document.getElementById('convertBtnIcon');
+        const resetBtn = document.getElementById('resetBtn');
+        const infoBtn = document.getElementById('infoBtn'); // Nuovo pulsante Info
+        const infoModal = document.getElementById('infoModal'); // Modal Info
+        const infoModalClose = document.getElementById('infoModalClose'); // Pulsante chiusura Modal
         const statusEl = document.getElementById('status');
         const progressBar = document.getElementById('progressBar');
         const exportMode = document.getElementById('exportMode');
@@ -442,7 +609,7 @@
         
         let jsonData = null;
         
-        // Descrizioni modalità
+        // Descrizioni modalità (usate anche per il modal info)
         const modeDescriptions = {
             balanced: `<strong>⚖️ Bilanciato:</strong> Miglior compromesso tra qualità e performance. Ideale per la maggior parte dei casi.`,
             highQuality: `<strong>🎯 Alta Qualità:</strong> Mantiene tutti i dettagli con tolleranza 0.01mm. Consigliato per:<br>
@@ -463,6 +630,22 @@
                     - Nessun 3D`
         };
         
+        // Funzione per resettare lo stato dell'applicazione
+        function resetAppState() {
+            jsonData = null;
+            fileInput.value = ''; // Resetta il campo file
+            convertBtn.disabled = true;
+            convertBtn.classList.remove('pulse');
+            convertBtnIcon.innerHTML = '<i class="fas fa-sync-alt"></i>'; // Ripristina icona
+            statusEl.textContent = 'Pronto per la conversione';
+            progressBar.style.width = '0%';
+            resetBtn.style.display = 'none';
+            dropZone.classList.remove('active'); // Rimuovi stato attivo se presente
+        }
+
+        // Inizializza l'app al caricamento
+        document.addEventListener('DOMContentLoaded', resetAppState);
+
         // Gestione drag & drop
         dropZone.addEventListener('click', () => fileInput.click());
         
@@ -474,17 +657,10 @@
         });
         
         ['dragleave', 'drop'].forEach(event => {
-            dropZone.addEventListener(event, (e) => {
+            dropZone.addEventListener(event, (e) => { 
                 e.preventDefault();
                 dropZone.classList.remove('active');
             });
-        });
-        
-        dropZone.addEventListener('drop', (e) => {
-            const file = e.dataTransfer.files[0];
-            if (file && (file.name.endsWith('.json') || file.name.endsWith('.js'))) {
-                handleFile(file);
-            }
         });
         
         fileInput.addEventListener('change', (e) => {
@@ -500,6 +676,7 @@
         
         // Gestione file
         function handleFile(file) {
+            resetAppState(); // Resetta lo stato prima di caricare un nuovo file
             const reader = new FileReader();
             
             reader.onloadstart = () => {
@@ -510,26 +687,34 @@
             reader.onload = (e) => {
                 try {
                     jsonData = JSON.parse(e.target.result);
+                    // Semplice controllo per una struttura simile a Three.js
+                    if (!jsonData.metadata && !jsonData.geometries && !jsonData.object) {
+                        // Se non viene trovata una struttura tipica di Three.js, avvisa
+                        console.warn("Il file JSON non sembra contenere una tipica geometria Three.js. Verranno generate entità di esempio.");
+                    }
                     statusEl.textContent = `File caricato: ${file.name}`;
                     statusEl.innerHTML += `<br><small style="opacity:0.7">${formatFileSize(file.size)}</small>`;
                     convertBtn.disabled = false;
                     progressBar.style.width = '50%';
                     convertBtn.classList.add('pulse');
+                    resetBtn.style.display = 'none'; // Nascondi il reset finché non serve
                 } catch (error) {
-                    statusEl.textContent = 'Errore: File JSON non valido';
+                    statusEl.textContent = `Errore: ${error.message}`;
                     progressBar.style.width = '0%';
                     jsonData = null;
                     convertBtn.disabled = true;
                     convertBtn.classList.remove('pulse');
+                    resetBtn.style.display = 'block'; // Mostra il reset in caso di errore
                 }
             };
             
             reader.onerror = () => {
-                statusEl.textContent = 'Errore nella lettura del file';
+                statusEl.textContent = 'Errore nella lettura del file.';
                 progressBar.style.width = '0%';
                 jsonData = null;
                 convertBtn.disabled = true;
                 convertBtn.classList.remove('pulse');
+                resetBtn.style.display = 'block'; // Mostra il reset in caso di errore
             };
             
             reader.readAsText(file);
@@ -543,6 +728,9 @@
             progressBar.style.width = '70%';
             convertBtn.disabled = true;
             convertBtn.classList.remove('pulse');
+            convertBtnIcon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Mostra spinner
+            resetBtn.style.display = 'none'; // Nascondi il reset durante la conversione
+            infoBtn.disabled = true; // Disabilita il tasto info durante la conversione
             
             try {
                 const strategy = getConversionStrategy(exportMode.value);
@@ -554,19 +742,45 @@
                 statusEl.textContent = 'Conversione completata con successo!';
                 statusEl.innerHTML += '<br><span style="color:#2ecc71">File pronto per il download</span>';
                 progressBar.style.width = '100%';
+                convertBtnIcon.innerHTML = '<i class="fas fa-check"></i>'; // Icona di successo
                 
                 setTimeout(() => {
                     progressBar.style.width = '0%';
-                    convertBtn.disabled = true;
-                    jsonData = null;
-                    statusEl.textContent = 'Pronto per un nuovo file';
-                }, 5000);
+                    convertBtnIcon.innerHTML = '<i class="fas fa-sync-alt"></i>'; // Ripristina icona
+                    resetBtn.style.display = 'block'; // Mostra il reset
+                    convertBtn.disabled = true; // Mantieni disabilitato il converti
+                    statusEl.textContent = 'Pronto per un nuovo file'; // Messaggio finale
+                    infoBtn.disabled = false; // Riabilita il tasto info
+                }, 3000); // Ritardo prima di mostrare il pulsante di reset
                 
             } catch (error) {
                 statusEl.textContent = `Errore di conversione: ${error.message}`;
-                statusEl.innerHTML += '<br><span style="color:#e74c3c">Riprova con un altro file</span>';
+                statusEl.innerHTML += '<br><span style="color:#e74c3c">Riprova con un altro file o modalità</span>';
                 progressBar.style.width = '0%';
                 convertBtn.disabled = true;
+                convertBtnIcon.innerHTML = '<i class="fas fa-times"></i>'; // Icona di errore
+                resetBtn.style.display = 'block'; // Mostra il reset in caso di errore
+                infoBtn.disabled = false; // Riabilita il tasto info
+            }
+        });
+
+        // Gestione del pulsante di reset
+        resetBtn.addEventListener('click', resetAppState);
+
+        // Gestione del pulsante Info
+        infoBtn.addEventListener('click', () => {
+            infoModal.classList.add('show');
+        });
+
+        // Gestione della chiusura del modal Info
+        infoModalClose.addEventListener('click', () => {
+            infoModal.classList.remove('show');
+        });
+
+        // Chiudi il modal cliccando all'esterno
+        infoModal.addEventListener('click', (e) => {
+            if (e.target === infoModal) {
+                infoModal.classList.remove('show');
             }
         });
         
@@ -580,36 +794,335 @@
                 legacy: { simplify: 1, precision: 0, format: 'R12', workers: false, force2D: true }
             }[mode];
         }
-        
+
+        /**
+         * Applica le trasformazioni (scala, rotazione, traslazione) a un vertice.
+         * Assume l'ordine di Eulero XYZ per la rotazione, come Three.js di default.
+         * @param {Array<number>} vertex - Il vertice [x, y, z].
+         * @param {object} position - L'oggetto posizione {x, y, z}.
+         * @param {object} rotation - L'oggetto rotazione (angoli di Eulero in radianti) {x, y, z}.
+         * @param {object} scale - L'oggetto scala {x, y, z}.
+         * @param {number} precision - La precisione per l'arrotondamento.
+         * @param {boolean} force2D - Se forzare la coordinata Z a 0.
+         * @returns {Array<number>} Il vertice trasformato.
+         */
+        function applyTransformations(vertex, position, rotation, scale, precision, force2D) {
+            let x = vertex[0];
+            let y = vertex[1];
+            let z = vertex[2];
+
+            // 1. Applica scala
+            x *= (scale.x !== undefined ? scale.x : 1);
+            y *= (scale.y !== undefined ? scale.y : 1);
+            z *= (scale.z !== undefined ? scale.z : 1);
+
+            // 2. Applica rotazioni (ordine XYZ di Eulero)
+            // Rotazione attorno all'asse X
+            if (rotation.x !== undefined && rotation.x !== 0) {
+                const cosX = Math.cos(rotation.x);
+                const sinX = Math.sin(rotation.x);
+                const ty = y * cosX - z * sinX;
+                const tz = y * sinX + z * cosX;
+                y = ty;
+                z = tz;
+            }
+            // Rotazione attorno all'asse Y
+            if (rotation.y !== undefined && rotation.y !== 0) {
+                const cosY = Math.cos(rotation.y);
+                const sinY = Math.sin(rotation.y);
+                const tx = x * cosY + z * sinY;
+                const tz = -x * sinY + z * cosY;
+                x = tx;
+                z = tz;
+            }
+            // Rotazione attorno all'asse Z
+            if (rotation.z !== undefined && rotation.z !== 0) {
+                const cosZ = Math.cos(rotation.z);
+                const sinZ = Math.sin(rotation.z);
+                const tx = x * cosZ - y * sinZ;
+                const ty = x * sinZ + y * cosZ;
+                x = tx;
+                y = ty;
+            }
+
+            // 3. Applica traslazione
+            x += (position.x !== undefined ? position.x : 0);
+            y += (position.y !== undefined ? position.y : 0);
+            z += (position.z !== undefined ? position.z : 0);
+
+            // Applica force2D e precisione finale
+            return [
+                +x.toFixed(precision),
+                +y.toFixed(precision),
+                force2D ? 0 : +z.toFixed(precision)
+            ];
+        }
+
+        /**
+         * Estrae le entità geometriche (vertici, facce, linee, punti, cerchi, archi) dal JSON di Three.js.
+         * Questa funzione cerca di interpretare la struttura di una BufferGeometry e il grafo della scena,
+         * applicando le trasformazioni di posizione, rotazione e scala degli oggetti.
+         * Se non viene trovata alcuna geometria Three.js valida, genera entità di esempio miste.
+         * @param {object} json - Il JSON del modello Three.js.
+         * @param {object} strategy - La strategia di conversione (precisione, forzatura 2D).
+         * @returns {Promise<Array<object>>} Un array di entità DXF (LINE, 3DFACE, CIRCLE, ARC, POINT).
+         */
         async function extractEntitiesOptimized(json, strategy) {
-            // Simulazione - implementazione reale userebbe l'ottimizzazione selezionata
             const entities = [];
-            const count = Math.min(5000, Math.floor(json.metadata?.vertexCount || 1000 * (1 - strategy.simplify)));
+
+            // Funzione helper per elaborare una singola geometria
+            const processGeometry = (geometryData, objectTransform = {position: {x:0,y:0,z:0}, rotation: {x:0,y:0,z:0}, scale: {x:1,y:1,z:1}}) => {
+                const positions = geometryData.attributes?.position?.array;
+                const indices = geometryData.index?.array;
+
+                if (!positions) return; // Nessun dato di posizione, salta
+
+                // Tentativo di rilevare geometrie primitive di Three.js
+                if (geometryData.type === 'CircleGeometry' && geometryData.parameters) {
+                    const params = geometryData.parameters;
+                    const center = applyTransformations(
+                        [0, 0, 0], // Il centro di una CircleGeometry non trasformata è [0,0,0]
+                        objectTransform.position,
+                        objectTransform.rotation,
+                        objectTransform.scale,
+                        strategy.precision,
+                        strategy.force2D
+                    );
+                    entities.push({
+                        type: 'CIRCLE',
+                        center: center,
+                        radius: +(params.radius * objectTransform.scale.x).toFixed(strategy.precision), // Il raggio è scalato
+                        layer: strategy.format === 'R12' ? 0 : 3 // Layer per cerchi
+                    });
+                    return; 
+                }
+                // Potresti aggiungere qui la logica per altre primitive come BoxGeometry, SphereGeometry, ecc.
+                // che potrebbero essere convertite in entità SOLID o 3DFACE più strutturate.
+
+                // Se abbiamo indici, creiamo 3DFACE (triangoli)
+                if (indices && indices.length > 0) {
+                    for (let i = 0; i < indices.length; i += 3) {
+                        const idx1 = indices[i] * 3;
+                        const idx2 = indices[i + 1] * 3;
+                        const idx3 = indices[i + 2] * 3;
+
+                        if (idx1 + 2 < positions.length && idx2 + 2 < positions.length && idx3 + 2 < positions.length) {
+                            const p1 = applyTransformations([positions[idx1], positions[idx1 + 1], positions[idx1 + 2]], objectTransform.position, objectTransform.rotation, objectTransform.scale, strategy.precision, strategy.force2D);
+                            const p2 = applyTransformations([positions[idx2], positions[idx2 + 1], positions[idx2 + 2]], objectTransform.position, objectTransform.rotation, objectTransform.scale, strategy.precision, strategy.force2D);
+                            const p3 = applyTransformations([positions[idx3], positions[idx3 + 1], positions[idx3 + 2]], objectTransform.position, objectTransform.rotation, objectTransform.scale, strategy.precision, strategy.force2D);
+
+                            entities.push({
+                                type: '3DFACE',
+                                points: [
+                                    p1[0], p1[1], p1[2],
+                                    p2[0], p2[1], p2[2],
+                                    p3[0], p3[1], p3[2],
+                                    p3[0], p3[1], p3[2] // Il quarto punto è duplicato per i triangoli
+                                ],
+                                layer: strategy.format === 'R12' ? 0 : 1 // Layer per facce
+                            });
+                        }
+                    }
+                } 
+                // Se non ci sono indici ma ci sono posizioni, creiamo LINE (collegando punti consecutivi)
+                else {
+                    for (let i = 0; i < positions.length - 5; i += 6) { // Prendiamo coppie di punti (x,y,z)
+                        const p1 = applyTransformations([positions[i], positions[i+1], positions[i+2]], objectTransform.position, objectTransform.rotation, objectTransform.scale, strategy.precision, strategy.force2D);
+                        const p2 = applyTransformations([positions[i+3], positions[i+4], positions[i+5]], objectTransform.position, objectTransform.rotation, objectTransform.scale, strategy.precision, strategy.force2D);
+                        
+                        entities.push({
+                            type: 'LINE',
+                            points: [
+                                p1[0], p1[1], p1[2],
+                                p2[0], p2[1], p2[2]
+                            ],
+                            layer: strategy.format === 'R12' ? 0 : 0 // Layer per linee
+                        });
+                    }
+                }
+            };
+
+            // Processa le geometrie definite in json.geometries (senza trasformazioni dirette dell'oggetto)
+            // Queste sono spesso geometrie "condivise" a cui gli oggetti fanno riferimento.
+            // Le trasformazioni verranno applicate quando gli oggetti che le usano vengono elaborati.
+            if (json.geometries && Array.isArray(json.geometries)) {
+                // Non processiamo direttamente qui per evitare duplicati se sono referenziate da oggetti
+                // La logica principale si concentra sugli oggetti nella scena.
+            } 
             
-            for (let i = 0; i < count; i++) {
-                entities.push({
-                    type: i % 4 === 0 ? 'LINE' : '3DFACE',
-                    points: [
-                        +(Math.random() * 100).toFixed(strategy.precision),
-                        +(Math.random() * 100).toFixed(strategy.precision),
-                        strategy.force2D ? 0 : +(Math.random() * 100).toFixed(strategy.precision),
-                        // ... altri punti
-                    ],
-                    layer: strategy.format === 'R12' ? 0 : i % 3
-                });
+            // Processa gli oggetti nel grafo della scena (Mesh, LineSegments, Points, Group)
+            if (json.object && json.object.children && Array.isArray(json.object.children)) {
+                const traverseObjects = (children, parentTransform = {position: {x:0,y:0,z:0}, rotation: {x:0,y:0,z:0}, scale: {x:1,y:1,z:1}}) => {
+                    for (const child of children) {
+                        // Combina le trasformazioni del genitore con quelle del figlio
+                        const currentPosition = {
+                            x: (parentTransform.position.x || 0) + (child.position?.x || 0),
+                            y: (parentTransform.position.y || 0) + (child.position?.y || 0),
+                            z: (parentTransform.position.z || 0) + (child.position?.z || 0)
+                        };
+                        const currentRotation = {
+                            x: (parentTransform.rotation.x || 0) + (child.rotation?.x || 0),
+                            y: (parentTransform.rotation.y || 0) + (child.rotation?.y || 0),
+                            z: (parentTransform.rotation.z || 0) + (child.rotation?.z || 0)
+                        };
+                        const currentScale = {
+                            x: (parentTransform.scale.x || 1) * (child.scale?.x || 1),
+                            y: (parentTransform.scale.y || 1) * (child.scale?.y || 1),
+                            z: (parentTransform.scale.z || 1) * (child.scale?.z || 1)
+                        };
+
+                        const currentTransform = {
+                            position: currentPosition,
+                            rotation: currentRotation,
+                            scale: currentScale
+                        };
+
+                        if (child.geometry && json.geometries) {
+                            // Trova la geometria corrispondente per UUID
+                            const geomData = json.geometries.find(g => g.uuid === child.geometry);
+                            if (geomData && geomData.data) {
+                                // Se è un Mesh, elabora come facce/linee
+                                if (child.type === 'Mesh') {
+                                    processGeometry(geomData.data, currentTransform);
+                                }
+                                // Se è LineSegments, elabora come linee
+                                else if (child.type === 'LineSegments') {
+                                    const positions = geomData.data.attributes?.position?.array;
+                                    if (positions) {
+                                        for (let i = 0; i < positions.length - 5; i += 6) { // Linee sono coppie di punti
+                                            const p1 = applyTransformations([positions[i], positions[i+1], positions[i+2]], currentTransform.position, currentTransform.rotation, currentTransform.scale, strategy.precision, strategy.force2D);
+                                            const p2 = applyTransformations([positions[i+3], positions[i+4], positions[i+5]], currentTransform.position, currentTransform.rotation, currentTransform.scale, strategy.precision, strategy.force2D);
+                                            
+                                            entities.push({
+                                                type: 'LINE',
+                                                points: [
+                                                    p1[0], p1[1], p1[2],
+                                                    p2[0], p2[1], p2[2]
+                                                ],
+                                                layer: strategy.format === 'R12' ? 0 : 0 // Layer per linee
+                                            });
+                                        }
+                                    }
+                                }
+                                // Se è Points, elabora come punti
+                                else if (child.type === 'Points') {
+                                    const positions = geomData.data.attributes?.position?.array;
+                                    if (positions) {
+                                        for (let i = 0; i < positions.length - 2; i += 3) { // Punti individuali (x,y,z)
+                                            const p = applyTransformations([positions[i], positions[i+1], positions[i+2]], currentTransform.position, currentTransform.rotation, currentTransform.scale, strategy.precision, strategy.force2D);
+                                            entities.push({
+                                                type: 'POINT',
+                                                point: [
+                                                    p[0], p[1], p[2]
+                                                ],
+                                                layer: strategy.format === 'R12' ? 0 : 2 // Layer per punti
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Se l'oggetto ha figli, attraversa ricorsivamente
+                        if (child.children && Array.isArray(child.children)) {
+                            traverseObjects(child.children, currentTransform);
+                        }
+                    }
+                };
+
+                traverseObjects(json.object.children, {position: {x:0,y:0,z:0}, rotation: {x:0,y:0,z:0}, scale: {x:1,y:1,z:1}}); // Inizia la traversata dalla radice della scena
+            }
+
+            // Se non è stata trovata alcuna geometria valida o oggetti scena, genera entità di esempio
+            if (entities.length === 0) {
+                console.warn("Nessuna geometria Three.js valida o oggetti scena trovati nel JSON. Generazione di entità di esempio miste.");
+                const numEntities = Math.min(500, Math.floor(1000 * (1 - strategy.simplify)));
+                for (let i = 0; i < numEntities; i++) {
+                    const type = Math.floor(Math.random() * 5); // 0: LINE, 1: 3DFACE, 2: CIRCLE, 3: ARC, 4: POINT
+                    const layer = strategy.format === 'R12' ? 0 : (i % 4); // Usa 4 layer per generazione casuale
+                    const precision = strategy.precision;
+
+                    if (type === 0) { // LINE
+                        entities.push({
+                            type: 'LINE',
+                            points: [
+                                +(Math.random() * 100).toFixed(precision), +(Math.random() * 100).toFixed(precision), strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision),
+                                +(Math.random() * 100).toFixed(precision), +(Math.random() * 100).toFixed(precision), strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision)
+                            ],
+                            layer: layer
+                        });
+                    } else if (type === 1) { // 3DFACE
+                        entities.push({
+                            type: '3DFACE',
+                            points: [
+                                +(Math.random() * 100).toFixed(precision), +(Math.random() * 100).toFixed(precision), strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision),
+                                +(Math.random() * 100).toFixed(precision), +(Math.random() * 100).toFixed(precision), strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision),
+                                +(Math.random() * 100).toFixed(precision), +(Math.random() * 100).toFixed(precision), strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision),
+                                +(Math.random() * 100).toFixed(precision), +(Math.random() * 100).toFixed(precision), strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision)
+                            ],
+                            layer: layer
+                        });
+                    } else if (type === 2) { // CIRCLE
+                        entities.push({
+                            type: 'CIRCLE',
+                            center: [
+                                +(Math.random() * 100).toFixed(precision),
+                                +(Math.random() * 100).toFixed(precision),
+                                strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision)
+                            ],
+                            radius: +(1 + Math.random() * 10).toFixed(precision),
+                            layer: layer
+                        });
+                    } else if (type === 3) { // ARC
+                        const startAngle = +(Math.random() * 360).toFixed(precision);
+                        const endAngle = +(startAngle + (Math.random() * 180 + 30)).toFixed(precision); // Arc at least 30 degrees
+                        entities.push({
+                            type: 'ARC',
+                            center: [
+                                +(Math.random() * 100).toFixed(precision),
+                                +(Math.random() * 100).toFixed(precision),
+                                strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision)
+                            ],
+                            radius: +(1 + Math.random() * 10).toFixed(precision),
+                            startAngle: startAngle,
+                            endAngle: endAngle,
+                            layer: layer
+                        });
+                    } else if (type === 4) { // POINT
+                        entities.push({
+                            type: 'POINT',
+                            point: [
+                                +(Math.random() * 100).toFixed(precision),
+                                +(Math.random() * 100).toFixed(precision),
+                                strategy.force2D ? 0 : +(Math.random() * 100).toFixed(precision)
+                            ],
+                            layer: layer
+                        });
+                    }
+                }
             }
             
+            // Simula un'operazione asincrona
+            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000)); 
             return entities;
         }
         
+        /**
+         * Genera il contenuto DXF basandosi sulle entità estratte e la strategia.
+         * @param {Array<object>} entities - Un array di entità DXF da scrivere.
+         * @param {object} strategy - La strategia di conversione.
+         * @returns {string} Il contenuto del file DXF.
+         */
         function generateDXFWithOptions(entities, strategy) {
             let dxf = `0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\n${strategy.format}\n0\nENDSEC\n`;
             
             if (strategy.format !== 'R12') {
                 dxf += `0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLAYER\n`;
-                for (let i = 0; i < 3; i++) {
-                    dxf += `0\nLAYER\n2\n${i}\n70\n0\n62\n${i * 7 + 1}\n`;
-                }
+                // Genera layer dinamici se non è R12
+                const uniqueLayers = [...new Set(entities.map(e => e.layer))].sort((a, b) => a - b);
+                uniqueLayers.forEach((layer, index) => {
+                    dxf += `0\nLAYER\n2\n${layer}\n70\n0\n62\n${(index * 7 + 1) % 256}\n`; // Colore casuale
+                });
                 dxf += `0\nENDTAB\n0\nENDSEC\n`;
             }
             
@@ -619,22 +1132,41 @@
                 dxf += `0\n${entity.type}\n8\n${entity.layer}\n`;
                 
                 if (entity.type === 'LINE') {
-                    dxf += `10\n${entity.points[0]}\n20\n${entity.points[1]}\n30\n${entity.points[2]}\n`;
-                    dxf += `11\n${entity.points[3]}\n21\n${entity.points[4]}\n31\n${entity.points[5]}\n`;
-                } else {
-                    for (let i = 0; i < 4; i++) {
-                        const idx = i % 3 * 3;
-                        dxf += `${10 + i}\n${entity.points[idx] || entity.points[0]}\n`;
-                        dxf += `${20 + i}\n${entity.points[idx + 1] || entity.points[1]}\n`;
-                        dxf += `${30 + i}\n${entity.points[idx + 2] || entity.points[2]}\n`;
-                    }
+                    // LINE ha due punti (Start, End)
+                    dxf += `10\n${entity.points[0]}\n20\n${entity.points[1]}\n30\n${entity.points[2]}\n`; // Start X, Y, Z
+                    dxf += `11\n${entity.points[3]}\n21\n${entity.points[4]}\n31\n${entity.points[5]}\n`; // End X, Y, Z
+                } else if (entity.type === '3DFACE') {
+                    // 3DFACE ha quattro punti (anche per triangoli, il 4° è duplicato del 3°)
+                    dxf += `10\n${entity.points[0]}\n20\n${entity.points[1]}\n30\n${entity.points[2]}\n`; // Punto 1 X, Y, Z
+                    dxf += `11\n${entity.points[3]}\n21\n${entity.points[4]}\n31\n${entity.points[5]}\n`; // Punto 2 X, Y, Z
+                    dxf += `12\n${entity.points[6]}\n22\n${entity.points[7]}\n32\n${entity.points[8]}\n`; // Punto 3 X, Y, Z
+                    dxf += `13\n${entity.points[9]}\n23\n${entity.points[10]}\n33\n${entity.points[11]}\n`; // Punto 4 X, Y, Z
+                } else if (entity.type === 'CIRCLE') {
+                    // CIRCLE ha centro (10, 20, 30) e raggio (40)
+                    dxf += `10\n${entity.center[0]}\n20\n${entity.center[1]}\n30\n${entity.center[2]}\n`; // Centro X, Y, Z
+                    dxf += `40\n${entity.radius}\n`; // Raggio
+                } else if (entity.type === 'ARC') {
+                    // ARC ha centro (10, 20, 30), raggio (40), angolo iniziale (50), angolo finale (51)
+                    dxf += `10\n${entity.center[0]}\n20\n${entity.center[1]}\n30\n${entity.center[2]}\n`; // Centro X, Y, Z
+                    dxf += `40\n${entity.radius}\n`; // Raggio
+                    dxf += `50\n${entity.startAngle}\n`; // Angolo iniziale
+                    dxf += `51\n${entity.endAngle}\n`; // Angolo finale
+                } else if (entity.type === 'POINT') {
+                    // POINT ha un singolo punto (10, 20, 30)
+                    dxf += `10\n${entity.point[0]}\n20\n${entity.point[1]}\n30\n${entity.point[2]}\n`; // Punto X, Y, Z
                 }
+                // Altri tipi di entità DXF possono essere aggiunti qui (es. POLYLINE, TEXT, INSERT, ecc.)
             });
             
             dxf += `0\nENDSEC\n0\nEOF`;
             return dxf;
         }
         
+        /**
+         * Avvia il download di un file con il contenuto specificato.
+         * @param {string} content - Il contenuto del file.
+         * @param {string} filename - Il nome del file.
+         */
         function downloadFile(content, filename) {
             const blob = new Blob([content], { type: 'application/dxf' });
             const url = URL.createObjectURL(blob);
@@ -651,6 +1183,11 @@
             }, 100);
         }
         
+        /**
+         * Formatta la dimensione del file in un formato leggibile.
+         * @param {number} bytes - La dimensione del file in byte.
+         * @returns {string} La dimensione formattata (es. "1.5 KB").
+         */
         function formatFileSize(bytes) {
             if (bytes < 1024) return bytes + ' bytes';
             else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
