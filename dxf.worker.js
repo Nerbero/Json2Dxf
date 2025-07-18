@@ -244,7 +244,7 @@ async function extractEntitiesOptimized(json, strategy, advancedOptions, signal)
             }
         };
 
-        traverseObjects(json.object.children || [], {position: {x:0,y:0,z:0}, rotation: {x:0,y:0,z:0}, scale: {x:1,y:1,z:1}}); // Inizia la traversata dalla radice della scena
+        traverseObjects(json.object.children || [], {position: {x:0,y:0,z:0}, rotation: {x:0,y:0,z:0}, scale: {x:1,y:1,z:1}}); // Start traversal from the scene root
     }
 
     // Se non è stata trovata alcuna geometria valida o oggetti scena, genera entità di esempio
@@ -317,7 +317,7 @@ async function extractEntitiesOptimized(json, strategy, advancedOptions, signal)
         }
     }
     
-    // Simula un'operazione asincrona
+    // Simulate an asynchronous operation
     await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000)); 
     return entities;
 }
